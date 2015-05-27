@@ -33,7 +33,7 @@ def mergeAndCount(l,first,mid,last):
 t = int(stdin.readline())
 for _ in xrange(t):
 
-	blank = stdin.readline()
+	stdin.readline()
 	size = int(stdin.readline())
 	l = []
 	new = [None for i in range(size)]
