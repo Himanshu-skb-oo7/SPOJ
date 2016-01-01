@@ -63,12 +63,12 @@ public class MaximumSum
         }
         
         public void update(int i, int x) {
-        	if(i == start && i == end) {
-        		arr[i] = x;
+            if(i == start && i == end) {
+                arr[i] = x;
                 this.max = x;
                 this.secondMax = -1;
                 return; 
-            } 
+            }
             if(start > i || i > end) return;
             if(Lchild == null) return;
             int mid = (start + end) >> 1;
