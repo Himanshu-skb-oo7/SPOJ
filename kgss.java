@@ -1,83 +1,85 @@
 import java.io.*;
 import java.util.*;
+import static java.lang.Math.max;
 
 public class MaximumSum
 {
     private static Reader in;
     private static PrintWriter out;
+    private static int [] arr;
 
     public static void main (String [] args) throws IOException {
         in = new Reader ();
         out = new PrintWriter (System.out, true);
-        int N = in.nextInt ();
-        IntervalTree a = new IntervalTree(1, N);
-        for (int i = 1; i <= N; i++)
-            a.update (i, in.nextInt ());
-        int Q = in.nextInt (), s, e;
-        for (int i = 0; i < Q; i++) {
-            char command = in.nextChar();
-            switch (command) {
-                case 'Q' : {
-                    s = in.nextInt ();
-                    e = in.nextInt ();
-                    out.println(a.maxSum(s,e));
-                    break;
-                } case 'U' : {
-                    s = in.nextInt ();
-                    e = in.nextInt ();
-                    a.update (s, e);
-                    break;
-                }
+        int n = in.nextInt ();
+        arr = new int [n + 1];
+        for (int i = 1; i <= n; i++) {
+            arr[i] = in.nextInt();
+        }
+        IntervalTree root = new IntervalTree (1, n);
+        int t = in.nextInt ();
+        while (t-- > 0) {
+        	char command = in.nextChar();
+            int 	a = in.nextInt(),
+            		b = in.nextInt();
+            if (command == 'Q') {
+            	IntervalTree result = root.query(a, b);
+            	out.println(result.max + result.secondMax);
+            } else if (command == 'U'){
+            	//arr[0] = 3;
+            	root.update(a, b);
             }
         }
     }
     
     static class IntervalTree {
-        public int max, max2, start, end;
-        public IntervalTree child1 = null, child2 = null;
+        public IntervalTree Lchild = null, Rchild = null;
+        public int max, secondMax, start, end;
         
-        public IntervalTree(int start, int end) {
-            this.start = start; this.end = end;
-            if(start != end) {
-                child1 = new IntervalTree(start, (start+end)/2);
-                child2 = new IntervalTree((start+end)/2+1, end);
+        public IntervalTree () {}
+        
+        public IntervalTree (int _start, int _end) {
+            start = _start; end = _end;
+            if (start != end) {
+                int mid = (start + end) >> 1;
+                Lchild = new IntervalTree (start, mid);
+                Rchild = new IntervalTree (mid + 1, end);
+                join (this, Lchild, Rchild);
+            }
+            else {
+            	this.max = arr [start];
+            	this.secondMax = -1;
             }
         }
         
-        public int [] maxQuery(int a, int b) {
-            if (a > b) return new int [] {-Integer.MAX_VALUE, -Integer.MAX_VALUE};
-            if(a <= start && end <= b) return new int [] {max, max2};
-            if(start > b || a > end) return new int [] {-Integer.MAX_VALUE, -Integer.MAX_VALUE};
-            
-            int [] c1 = child1.maxQuery (a, b);
-            int [] c2 = child2.maxQuery (a, b);
-            
-            int [] ret = new int [] { c1 [0], c2 [0], c1 [1], c2 [1] };
-            Arrays.sort (ret);
-            
-            return new int [] { ret [3], ret [2] };
-        }
-        
-        public int maxSum(int a, int b) { 
-            int [] res = maxQuery (a, b);
-            return res [0] + res [1];
-        }
-        
-        public void update(int a, int val) {
-            if(a == start && a == end) {
-                max = val;
-                max2 = 0;
-                return;
-            }
-            if(start > a || a > end) return;
-            if(child1 == null) return;
+        public IntervalTree query (int a, int b) {
+            if (a == start && end == b) return this;
             int mid = (start + end) >> 1;
-            if (a > mid) child2.update(a,val);
-            else         child1.update(a,val);
-            max = Math.max (child1.max, child2.max);
-            max2 = Math.max (Math.min (child1.max, child2.max),
-                             Math.max (child1.max2, child2.max2));
-            if (max2 > max) {max^=max2;max2^=max;max^=max2;}
+            if (a > mid) return Rchild.query (a, b);
+            if (b <= mid) return Lchild.query (a, b);
+            IntervalTree ans = new IntervalTree ();
+            join (ans, Lchild.query (a, mid), Rchild.query (mid + 1, b));
+            return ans;
+        }
+        
+        public void update(int i, int x) {
+        	if(i == start && i == end) {
+        		arr[i] = x;
+                this.max = x;
+                this.secondMax = -1;
+                return; 
+            } 
+            if(start > i || i > end) return;
+            if(Lchild == null) return;
+            int mid = (start + end) >> 1;
+            if (i > mid) Rchild.update(i, x);
+            else         Lchild.update(i, x);
+            join (this, Lchild, Rchild);               
+        }
+        
+        public void join (IntervalTree parent, IntervalTree Lchild, IntervalTree Rchild) {
+            parent.max = Math.max(Lchild.max, Rchild.max);
+            parent.secondMax = Math.max(Math.max(Lchild.secondMax, Rchild.secondMax), Math.min(Lchild.max, Rchild.max));
         }
     }
 }
