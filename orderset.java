@@ -21,6 +21,7 @@ public class OrderStatisticSet {
         commands = new char[q + 1];
         map = new TreeMap<Integer, Integer>();
         
+        sortedArr[0] = Integer.MIN_VALUE;
         for (int i = 1; i <= q; i++) {
         	commands[i] = in.nextChar();
         	arr[i] = sortedArr[i] = in.nextInt();
